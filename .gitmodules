@@ -1,0 +1,3 @@
+[submodule "hardware/ATTinyCore"]
+	path = hardware/ATTinyCore
+	url = git@github.com:SpenceKonde/ATTinyCore.git
