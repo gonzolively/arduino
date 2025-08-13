@@ -6,141 +6,119 @@
 #include <util/delay.h>
 #ifndef ARDUINO
 #include <stdint.h>
-#include "millionUtil.h"         //not needed if compiled with Arduino & Arduino-Tiny
 #endif
 
 #define BODS 7                   //BOD Sleep bit in MCUCR
 #define BODSE 2                  //BOD Sleep enable bit in MCUCR
 
-// Function declarations (forward declarations)
-void goToSleep(long wdtLimit);
-void makeTone(int msOfTone);
-void startTone();
-void stopTone();
-void wdtEnable(void);
-void wdtDisable(void);
+int PIN = 1;
+int REGULAR_HI_MS = 200;
+int WAKE_INDICATOR_HI_MS = 0; //200;
+int INITIAL_BEEP_COUNT = 3;   // number of "test" beeps before we go into the real loop
 
-// Configuration
-int PIN = 0;                     // Output pin (PB0 on ATtiny85)
-int REGULAR_HI_MS = 500;         // Shorter beep - more annoying than long ones
-int WAKE_INDICATOR_HI_MS = 0;    // Debug indicator (0 = disabled)
-int INITIAL_BEEP_COUNT = 3;      // Beep 3 times upon power on
+// min/max number of 8-sec WDT periods to sleep for
+//int RANDOM_SLEEP_MIN = 7;     // 1 min (1 * 60 / 8)
+//int RANDOM_SLEEP_MAX = 30;    // 4 mins (4 * 60 / 8)
 
-// Sleep timing (in 8-second watchdog periods)
-int RANDOM_SLEEP_MIN = 38;       // ~5 mins (38 * 8 seconds = 304s)
-int RANDOM_SLEEP_MAX = 225;      // ~30 mins (225 * 8 seconds = 1800s)
-//int RANDOM_SLEEP_MIN = 225;    // 30 mins for maximum stealth
-//int RANDOM_SLEEP_MAX = 900;    // 2 hours for maximum stealth
+// debug
+int RANDOM_SLEEP_MIN = 99;     // 1 min (1 * 60 / 8)
+int RANDOM_SLEEP_MAX = 99;    // 4 mins (4 * 60 / 8)
 
-// Global variables
 uint8_t mcucr1, mcucr2;
-bool keepSleeping;
-unsigned long msNow;
-unsigned long msWakeUp;
-long wdtCount;                   // Counts watchdog wake-ups
+bool keepSleeping;                   //flag to keep sleeping or not
+unsigned long msNow;                 //the current time from millis()
+unsigned long msWakeUp;              //the time we woke up
+long wdtCount;                       //how many 8-sec WDT periods we've slept for
 
 void setup() {
-  randomSeed(analogRead(A2));    // Seed random with analog noise
-  delay(3000);                   // Wait 3 seconds before first beep
-
-  // Initial test beeps to confirm it's working
-  for (int i=0; i < INITIAL_BEEP_COUNT; i++) {
+  for (int i=0; i < INITIAL_BEEP_COUNT - 1; i++) {
     makeTone(REGULAR_HI_MS);
-    if (i < INITIAL_BEEP_COUNT - 1) {
-      goToSleep(1);              // Sleep 8 seconds between test beeps
-    }
+    goToSleep(1);
+    Serial.write("hello");
   }
 }
 
 void loop() {
-  makeTone(REGULAR_HI_MS);       // Make annoying sound/blink
-  // Sleep for random period (5-30 minutes with current settings)
+  makeTone(REGULAR_HI_MS);
   goToSleep(random(RANDOM_SLEEP_MIN, RANDOM_SLEEP_MAX + 1));
 }
 
 void makeTone(int msOfTone) {
   pinMode(PIN, OUTPUT);
-  startTone();                   // Start PWM tone generation
-  delay(msOfTone);               // Let it run for specified time
-  stopTone();                    // Stop the tone
-  pinMode(PIN, INPUT);           // Save power by setting pin to input
+  startTone();
+  delay(msOfTone);  // let the tone sound for a bit
+  stopTone();
+  pinMode(PIN, INPUT);
 }
 
 void startTone() {
-  // Generate high-pitch tone using Timer1 PWM
-  // Clock values: Range from 9F-94 (with 9F being the slowest clock)
-  TCCR1 = 0x94;                  // Set timer prescaler and mode
-  // Pitch: Range from 255-4 (255 being the lowest pitch)
-  OCR1C = 7;                     // Set frequency (lower = higher pitch)
+  TCCR1 = 0x99;  // clock speed (highest to lowest values: 0x94 - 0x9F)
+  OCR1C = 100;     // Pitch (highest to lowest values: 255-4)
 }
 
 void stopTone() {
-  TCCR1 = 0x90;                  // Stop the timer
+  TCCR1 = 0x90; // stop the counter
 }
 
-// Ultra-low power sleep using watchdog timer
-// wdtLimit = number of 8-second periods to sleep
+// wdtLimit = number of WDT periods to wake after
 void goToSleep(long wdtLimit)
 {
     msNow = millis();
     wdtCount = 0;
     
     do {
-        // Disable power-hungry peripherals
-        ACSR |= _BV(ACD);          // Disable analog comparator
-        ADCSRA &= ~_BV(ADEN);      // Disable ADC
+        ACSR |= _BV(ACD);                         //disable the analog comparator
+        ADCSRA &= ~_BV(ADEN);                     //disable ADC
         set_sleep_mode(SLEEP_MODE_PWR_DOWN);
         sleep_enable();
         
-        // Start 8-second watchdog timer
-        wdtEnable();
+        wdtEnable();              //start the WDT
         
-        // Disable brown-out detector for ultra-low power (~0.5µA)
+        //turn off the brown-out detector.
+        //must have an ATtiny45 or ATtiny85 rev C or later for software to be able to disable the BOD.
+        //current while sleeping will be <0.5uA if BOD is disabled, <25uA if not.
         cli();
-        mcucr1 = MCUCR | _BV(BODS) | _BV(BODSE);
+        mcucr1 = MCUCR | _BV(BODS) | _BV(BODSE);  //turn off the brown-out detector
         mcucr2 = mcucr1 & ~_BV(BODSE);
         MCUCR = mcucr1;
         MCUCR = mcucr2;
-        sei();
-
-        // Go to sleep until watchdog wakes us
-        sleep_cpu();
-
-        // Wake up here after ~8 seconds
-        cli();
+        sei();                         //ensure interrupts enabled so we can wake up again
+        sleep_cpu();                   //go to sleep
+                                       //----zzzz----zzzz----zzzz----zzzz
+        cli();                         //wake up here, disable interrupts
         sleep_disable();
-        wdtDisable();
-        sei();
+        wdtDisable();                  //don't need the watchdog while we're awake
+        sei();                         //enable interrupts again (but INT0 is disabled above)
 
-        // Check if we need to keep sleeping
         if (++wdtCount < wdtLimit) {
             keepSleeping = true;
             if (WAKE_INDICATOR_HI_MS > 0) {
-              makeTone(WAKE_INDICATOR_HI_MS);  // Debug: show wake-ups
+              makeTone(WAKE_INDICATOR_HI_MS);            //briefly blink an LED so we can see the wdt wake-ups
             }
         }
         else {
-            keepSleeping = false;  // Done sleeping
+            keepSleeping = false;
         }
     } while (keepSleeping);
     
     msWakeUp = millis();
 }
 
-ISR(WDT_vect) {}                 // Watchdog interrupt - just wake up
+ISR(WDT_vect) {}                  //don't need to do anything here when the WDT wakes the MCU
 
-// Configure watchdog for 8-second interrupt
+//enable the WDT for 8sec interrupt
 void wdtEnable(void)
 {
     wdt_reset();
     cli();
     MCUSR = 0x00;
     WDTCR |= _BV(WDCE) | _BV(WDE);
-    WDTCR = _BV(WDIE) | _BV(WDP3) | _BV(WDP0);  // 8192ms timeout
+    WDTCR = _BV(WDIE) | _BV(WDP3) | _BV(WDP0);    //8192ms
     sei();
 }
 
-// Turn off watchdog
+
+//disable the WDT
 void wdtDisable(void)
 {
     wdt_reset();
