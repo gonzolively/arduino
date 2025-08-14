@@ -17,12 +17,8 @@ int WAKE_INDICATOR_HI_MS = 0; //200;
 int INITIAL_BEEP_COUNT = 3;   // number of "test" beeps before we go into the real loop
 
 // min/max number of 8-sec WDT periods to sleep for
-//int RANDOM_SLEEP_MIN = 7;     // 1 min (1 * 60 / 8)
-//int RANDOM_SLEEP_MAX = 30;    // 4 mins (4 * 60 / 8)
-
-// debug
-int RANDOM_SLEEP_MIN = 99;     // 1 min (1 * 60 / 8)
-int RANDOM_SLEEP_MAX = 99;    // 4 mins (4 * 60 / 8)
+int RANDOM_SLEEP_MIN = 75;     // 10 minx (10 * 60 / 8)
+int RANDOM_SLEEP_MAX = 450;    // 60 mins (60 * 60 / 8)
 
 uint8_t mcucr1, mcucr2;
 bool keepSleeping;                   //flag to keep sleeping or not
@@ -33,8 +29,7 @@ long wdtCount;                       //how many 8-sec WDT periods we've slept fo
 void setup() {
   for (int i=0; i < INITIAL_BEEP_COUNT - 1; i++) {
     makeTone(REGULAR_HI_MS);
-    goToSleep(1);
-    Serial.write("hello");
+    delay(100);
   }
 }
 
@@ -52,8 +47,8 @@ void makeTone(int msOfTone) {
 }
 
 void startTone() {
-  TCCR1 = 0x99;  // clock speed (highest to lowest values: 0x94 - 0x9F)
-  OCR1C = 100;     // Pitch (highest to lowest values: 255-4)
+  TCCR1 = 0x92;  // clock speed (highest to lowest values: 0x94 - 0x9F)
+  OCR1C = 20;   // Pitch (highest pitch to lowest: 18-)
 }
 
 void stopTone() {
