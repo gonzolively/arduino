@@ -17,8 +17,12 @@ int WAKE_INDICATOR_HI_MS = 0; //200;
 int INITIAL_BEEP_COUNT = 3;   // number of "test" beeps before we go into the real loop
 
 // min/max number of 8-sec WDT periods to sleep for
-int RANDOM_SLEEP_MIN = 75;     // 10 minx (10 * 60 / 8)
+int RANDOM_SLEEP_MIN = 75;     // 10 mins (10 * 60 / 8)
 int RANDOM_SLEEP_MAX = 450;    // 60 mins (60 * 60 / 8)
+
+// Define the range of tone values to use
+int TONE_MIN = 6;      // Minimum OCR1C value (higher pitch)
+int TONE_MAX = 100;    // Maximum OCR1C value (lower pitch)
 
 uint8_t mcucr1, mcucr2;
 bool keepSleeping;                   //flag to keep sleeping or not
@@ -27,6 +31,10 @@ unsigned long msWakeUp;              //the time we woke up
 long wdtCount;                       //how many 8-sec WDT periods we've slept for
 
 void setup() {
+  // Seed the random number generator with some pseudo-random value
+  // Using TCNT1 which should have some variability at startup
+  randomSeed(TCNT1);
+  
   for (int i=0; i < INITIAL_BEEP_COUNT - 1; i++) {
     makeTone(REGULAR_HI_MS);
     delay(100);
@@ -47,8 +55,12 @@ void makeTone(int msOfTone) {
 }
 
 void startTone() {
-  TCCR1 = 0x92;  // clock speed (highest to lowest values: 0x94 - 0x9F)
-  OCR1C = 20;   // Pitch (highest pitch to lowest: 18-)
+  // Original "annoyatron" tone, like a high pitch watch beep.
+  TCCR1 = 0x92;  // clock speed (highest to lowest values: 0x92 - 0x9F)
+  
+  // Generate random tone value within our defined range
+  uint8_t randomTone = random(TONE_MIN, TONE_MAX + 1);
+  OCR1C = randomTone;   // Random pitch each time!
 }
 
 void stopTone() {
@@ -111,7 +123,6 @@ void wdtEnable(void)
     WDTCR = _BV(WDIE) | _BV(WDP3) | _BV(WDP0);    //8192ms
     sei();
 }
-
 
 //disable the WDT
 void wdtDisable(void)
