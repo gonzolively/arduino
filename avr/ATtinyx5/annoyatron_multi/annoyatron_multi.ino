@@ -11,56 +11,87 @@
 #define BODS 7                   //BOD Sleep bit in MCUCR
 #define BODSE 2                  //BOD Sleep enable bit in MCUCR
 
-int PIN = 1;
+int PIN = 1;                     // PB1 for speaker output
+int MODE1_PIN = 3;               // PB3 for simple beep mode detection
+int MODE2_PIN = 4;               // PB4 for variety mode detection
+
 int REGULAR_HI_MS = 200;
-int WAKE_INDICATOR_HI_MS = 0; //200;
-int INITIAL_BEEP_COUNT = 3;   // number of "test" beeps before we go into the real loop
+int WAKE_INDICATOR_HI_MS = 0;
+int INITIAL_BEEP_COUNT = 3;      // number of "test" beeps before we go into the real loop
 
-// min/max number of 8-sec WDT periods to sleep for
-int RANDOM_SLEEP_MIN = 75;     // 10 mins (10 * 60 / 8)
-int RANDOM_SLEEP_MAX = 450;    // 60 mins (60 * 60 / 8)
+// Min/max number of 8-sec WDT periods to sleep for
+int SIMPLE_SLEEP_MIN = 75;       // 10 mins (5 * 60 / 8)
+int SIMPLE_SLEEP_MAX = 450;      // 60 mins (10 * 60 / 8)
+int VARIETY_SLEEP_MIN = 75;      // 10 mins (10 * 60 / 8)
+int VARIETY_SLEEP_MAX = 450;     // 60 mins (60 * 60 / 8
 
-// Define the range of tone values to use
-int TONE_MIN = 6;      // Minimum OCR1C value (higher pitch)
-int TONE_MAX = 100;    // Maximum OCR1C value (lower pitch)
+// Tone declaration
+int TONE_MIN = 1;                // Minimum OCR1C value (higher pitch)
+int TONE_MAX = 254;              // Maximum OlCR1C value (lower pitch)
+int SIMPLE_TONE = 20;            // Fixed tone for simple mode (classic "annoyatron" beep)
 
 uint8_t mcucr1, mcucr2;
-bool keepSleeping;                   //flag to keep sleeping or not
-unsigned long msNow;                 //the current time from millis()
-unsigned long msWakeUp;              //the time we woke up
-long wdtCount;                       //how many 8-sec WDT periods we've slept for
+bool keepSleeping;               //flag to keep sleeping or not
+unsigned long msNow;             //the current time from millis()
+unsigned long msWakeUp;          //the time we woke up
+long wdtCount;                   //how many 8-sec WDT periods we've slept for
 
 void setup() {
+  // Set up mode detection pins with internal pull-ups
+  pinMode(MODE1_PIN, INPUT_PULLUP);  // PB3
+  pinMode(MODE2_PIN, INPUT_PULLUP);  // PB4
+
   // Seed the random number generator with some pseudo-random value
-  // Using TCNT1 which should have some variability at startup
   randomSeed(TCNT1);
   
-  for (int i=0; i < INITIAL_BEEP_COUNT - 1; i++) {
-    makeTone(REGULAR_HI_MS);
-    delay(100);
+  // Check mode at startup and give appropriate initial beeps
+  bool isSimpleMode = (digitalRead(MODE1_PIN) == LOW);
+
+  for (int i = 0; i < INITIAL_BEEP_COUNT; i++) {
+    if (isSimpleMode) {
+      makeTone(REGULAR_HI_MS, SIMPLE_TONE);
+    } else {
+      makeTone(REGULAR_HI_MS, random(TONE_MIN, TONE_MAX + 1));
+    }
+    if (i < INITIAL_BEEP_COUNT - 1) {
+      delay(100);
+    }
   }
 }
 
 void loop() {
-  makeTone(REGULAR_HI_MS);
-  goToSleep(random(RANDOM_SLEEP_MIN, RANDOM_SLEEP_MAX + 1));
+  // Check which mode we're in based on switch position
+  bool isSimpleMode = (digitalRead(MODE1_PIN) == LOW);
+  bool isVarietyMode = (digitalRead(MODE2_PIN) == LOW);
+
+  if (isSimpleMode) {
+    // Simple beep mode (left switch position)
+    makeTone(REGULAR_HI_MS, SIMPLE_TONE);
+    goToSleep(random(SIMPLE_SLEEP_MIN, SIMPLE_SLEEP_MAX + 1));
+  }
+  else if (isVarietyMode) {
+    // Variety mode (right switch position)
+    makeTone(REGULAR_HI_MS, random(TONE_MIN, TONE_MAX + 1));
+    goToSleep(random(VARIETY_SLEEP_MIN, VARIETY_SLEEP_MAX + 1));
+  }
+  else {
+    // Neither button pressed - just wait and check again
+    delay(1000);
+  }
 }
 
-void makeTone(int msOfTone) {
+void makeTone(int msOfTone, int toneValue) {
   pinMode(PIN, OUTPUT);
-  startTone();
+  startTone(toneValue);
   delay(msOfTone);  // let the tone sound for a bit
   stopTone();
   pinMode(PIN, INPUT);
 }
 
-void startTone() {
-  // Original "annoyatron" tone, like a high pitch watch beep.
+void startTone(int toneValue) {
+  // Set up timer with specified tone value
   TCCR1 = 0x92;  // clock speed (highest to lowest values: 0x92 - 0x9F)
-  
-  // Generate random tone value within our defined range
-  uint8_t randomTone = random(TONE_MIN, TONE_MAX + 1);
-  OCR1C = randomTone;   // Random pitch each time!
+  OCR1C = toneValue;
 }
 
 void stopTone() {
@@ -100,7 +131,13 @@ void goToSleep(long wdtLimit)
         if (++wdtCount < wdtLimit) {
             keepSleeping = true;
             if (WAKE_INDICATOR_HI_MS > 0) {
-              makeTone(WAKE_INDICATOR_HI_MS);            //briefly blink an LED so we can see the wdt wake-ups
+              // Check mode for wake indicator beep
+              bool isSimpleMode = (digitalRead(MODE1_PIN) == LOW);
+              if (isSimpleMode) {
+                makeTone(WAKE_INDICATOR_HI_MS, SIMPLE_TONE);
+              } else {
+                makeTone(WAKE_INDICATOR_HI_MS, random(TONE_MIN, TONE_MAX + 1));
+              }
             }
         }
         else {
