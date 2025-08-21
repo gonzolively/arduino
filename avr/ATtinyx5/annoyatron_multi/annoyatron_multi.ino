@@ -8,14 +8,14 @@
 #include <stdint.h>
 #endif
 
-#define BODS 7                   //BOD Sleep bit in MCUCR
-#define BODSE 2                  //BOD Sleep enable bit in MCUCR
+#define BODS 7                         //BOD Sleep bit in MCUCR
+#define BODSE 2                        //BOD Sleep enable bit in MCUCR
 
 const int PIN = 1;                     // PB1 for speaker output
 const int MODE1_PIN = 3;               // PB3 for simple beep mode detection
 const int MODE2_PIN = 4;               // PB4 for variety mode detection
 
-const int REGULAR_HI_MS = 200;
+const int REGULAR_HI_MS = 200;         // Tone legnth for simple mode
 const int VARIETY_TONE_MIN_MS = 100;   // Minimum tone length for variety mode
 const int VARIETY_TONE_MAX_MS = 500;   // Maximum tone length for variety mode
 const int WAKE_INDICATOR_HI_MS = 0;
@@ -31,8 +31,8 @@ const int TONE_MAX = 254;              // Maximum OCR1C value (lower pitch)
 const int SIMPLE_TONE = 20;            // Fixed tone for simple mode (classic "annoyatron" beep)
 
 uint8_t mcucr1, mcucr2;
-bool keepSleeping;               //flag to keep sleeping or not
-long wdtCount;                   //how many 8-sec WDT periods we've slept for
+bool keepSleeping;                     //flag to keep sleeping or not
+long wdtCount;                         //how many 8-sec WDT periods we've slept for
 volatile bool switchPressed = false;   //flag set by pin change interrupt
 
 void setup() {
