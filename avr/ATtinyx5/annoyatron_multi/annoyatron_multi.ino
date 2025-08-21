@@ -16,8 +16,8 @@ const int MODE1_PIN = 3;               // PB3 for simple beep mode detection
 const int MODE2_PIN = 4;               // PB4 for variety mode detection
 
 const int REGULAR_HI_MS = 200;         // Tone legnth for simple mode
-const int VARIETY_TONE_MIN_MS = 100;   // Minimum tone length for variety mode
-const int VARIETY_TONE_MAX_MS = 500;   // Maximum tone length for variety mode
+const int VARIETY_TONE_MIN_MS = 50;    // Minimum tone length for variety mode
+const int VARIETY_TONE_MAX_MS = 300;   // Maximum tone length for variety mode
 const int WAKE_INDICATOR_HI_MS = 0;
 const int INITIAL_BEEP_COUNT = 3;      // number of "test" beeps before we go into the real loop
 
