@@ -1,4 +1,9 @@
-# Wiring Diagram
+# Wiring
+
+This section provides a complete wiring reference for the Annoyatron clone build. The image below shows how the components are connected, while the tables that follow break down each pin, switch terminal, and function in detail.
+
+![Wiring Example](../images/back.jpg)
+
 
 ## Component Connections
 | Component | Terminal/Pin | Connection To |
