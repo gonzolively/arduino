@@ -5,21 +5,23 @@ It emits short periodic beeps at random intervals, powered by a coin cell batter
 ![Front View](images/front.jpg)
 
 ## Hardware
-See [`docs/bom.md`](docs/bom.md) and [`docs/wiring.md`](docs/wiring.md) for component list and wiring diagram.  
-- ATtiny85 (8-pin DIP) + socket  
-- **TMB12A03 speaker** (3V magnetic speaker - see note below)
-- Coin cell holder + CR2032/2025/2016 battery  
-- Small protoboard  
-- DPDT slide switch  
+See [`docs/wiring.md`](docs/wiring.md) for a wiring diagram.
+- ATtiny85 (8-pin DIP) + socket
+- Piezo Seaker - NOT Buzzer (sometimes called "mini speaker")
+- Coin cell holder + CR2032/2025/2016 battery
+- Small protoboard (1x1 inch or larger)
+- DPDT slide switch
 
-**Important Speaker Note:** This code was developed specifically using the TMB12A03 3V magnetic speaker. If you use a different speaker (piezo buzzer, different impedance, or voltage rating), you will likely need to adjust these values in the code to achieve the desired tone, pitch, and volume.
+**Note:** This code was developed specifically for [this](https://www.aliexpress.us/item/3256808491143220.html?spm=a2g0o.order_list.order_list_main.17.2f711802udN9xq&gatewayAdapt=glo2usa) Piezo speaker I bought on AliExpress which gave
+me the exact tones I was looking for. You can also use the TMB12A03 "active buzzer" and it will give you very similar tones, though "flatter" and less "musical". [This](https://www.sparkfun.com/mini-speaker-pc-mount-12mm-2-048khz.html) speaker from Adafruit MAY work, though I have not tested it.
+All in all, you will likely need to tweak the code, or add resistors to your setup depending on which speaker you choose to get the desired tones.
 
 ## Usage
-1. Flash the `annoyatron_multi.ino` sketch onto the ATtiny85.  
-2. Insert into DIP socket on your board.  
-3. Wire battery, speaker, and DPDT switch as shown in [`docs/wiring.md`](docs/wiring.md).  
-4. Power on → device will give 3 quick startup beeps.  
-5. Use the DPDT switch to select mode:  
-   - **Left position** → Simple beep mode  
-   - **Middle position** → Device completely off  
+1. Flash the `annoyatron_multi.ino` sketch onto the ATtiny85 (see the repo [README](../../README.md) for programming bare AVR chips with the Arduino IDE).
+2. Insert into DIP socket on your board.
+3. Wire battery, speaker, and DPDT switch as shown in [`docs/wiring.md`](docs/wiring.md).
+4. Power on → device will give 3 quick startup beeps.
+5. Use the DPDT switch to select mode:
+   - **Left position** → Simple beep mode
+   - **Middle position** → Device completely off
    - **Right position** → Variety mode
