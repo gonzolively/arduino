@@ -8,7 +8,6 @@ See [`docs/wiring.md`](docs/wiring.md) for the wiring diagram.
 - Piezo Speaker – NOT Buzzer (sometimes called "mini speaker")
 - Coin cell holder + CR2032/2025/2016 battery
 - Small protoboard (1x1 inch or larger)
-- DPDT slide switch
 
 **Note:** This code was developed specifically for [this](https://www.aliexpress.us/item/3256808491143220.html?spm=a2g0o.order_list.order_list_main.17.2f711802udN9xq&gatewayAdapt=glo2usa) Piezo speaker I bought on AliExpress which gave  
 me the exact tones I was looking for. You can also use the TMB12A03 "active buzzer" and it will give you very similar tones, though "flatter" and less "musical". [This](https://www.sparkfun.com/mini-speaker-pc-mount-12mm-2-048khz.html) speaker from Adafruit MAY work, though I have not tested it.  
