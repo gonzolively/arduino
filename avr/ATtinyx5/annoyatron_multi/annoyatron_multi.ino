@@ -22,8 +22,8 @@ const int WAKE_INDICATOR_HI_MS = 0;
 const int INITIAL_BEEP_COUNT = 3;      // number of "test" beeps before we go into the real loop
 
 // Min/max number of 8-sec WDT periods to sleep for (shared by all modes)
-const int SLEEP_MIN = 75;              // 10 mins (10 * 60 / 8)
-const int SLEEP_MAX = 450;             // 60 mins (60 * 60 / 8)
+const int SLEEP_MIN = 225;             // 30 min (30 * 60/8)
+const int SLEEP_MAX = 900;             // 120 min (120 * 60/8)
 
 // Tone declaration
 const int TONE_MIN = 1;                // Minimum OCR1C value (higher pitch)
