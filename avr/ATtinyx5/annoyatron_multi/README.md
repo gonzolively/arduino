@@ -27,7 +27,7 @@ A low-power "Annoyatron"-style device built around an ATtiny85 microcontroller, 
 2. Insert into DIP socket on your board.
 3. Wire battery, speaker, and DPDT switch as shown in [`docs/wiring.md`](docs/wiring.md).
 4. Power on → device will give 3 quick startup beeps.
-5. Use the tactile push button to select mode (Simple beep mode enabled by default at startup):
+5. Use the tactile push button to select mode (**Mode 1** enabled by default at startup):
    - **1st push** Simple beep mode → Multi-beep mode
    - **2nd push** Multi-beep mode → Cricket sounds
    - **3rd push, and so on** Cricket sounds → Simple beep mode
