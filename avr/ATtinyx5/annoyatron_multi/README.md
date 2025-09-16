@@ -31,5 +31,3 @@ A low-power "Annoyatron"-style device built around an ATtiny85 microcontroller, 
    - **1st push** Simple beep mode → Multi-beep mode
    - **2nd push** Multi-beep mode → Cricket sounds
    - **3rd push, and so on** Cricket sounds → Simple beep mode
-
-**Note:** Simple beep mode is enabled by default at startup
