@@ -23,7 +23,7 @@ A low-power "Annoyatron"-style device built around an ATtiny85 microcontroller, 
 **Note:** If you choose a speaker other than the one listed here, you will likely need to tweak the code or add resistors to your setup, depending on which speaker you choose to get the desired tones.
 
 ## Usage
-1. Flash the [annoyatron.ino](annoyatron.ino) sketch onto the ATtiny85 (see the repo [README](../../README.md) for programming bare AVR chips with the Arduino IDE).
+1. Flash the [annoyatron_multi.ino](annoyatron_multi.ino) sketch onto the ATtiny85 (see the repo [README](../../README.md) for programming bare AVR chips with the Arduino IDE).
 2. Insert into the DIP socket on your board.
 3. Wire battery, speaker, and DPDT switch as shown in [`docs/wiring.md`](docs/wiring.md).
 4. Power on → device will give 3 quick startup beeps.
